@@ -2,6 +2,16 @@
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
+#include <WiFi.h>
+#include <WiFiClient.h>
+
+
+#define BLYNK_TEMPLATE_ID "TMPL5QkKQEz4l"
+#define BLYNK_TEMPLATE_NAME "TD01 GP08"
+#define BLYNK_AUTH_TOKEN "L7KkRunOZbZMEcGK0_PdZIAsqean_s21"
+#include <BlynkSimpleEsp32.h>
+
+#define BLYNK_PRINT Serial
 
 // Define the pins that we will use
 #define CAPTEUR 33
@@ -10,11 +20,17 @@
 
 DHT_Unified dht(CAPTEUR, DHTTYPE);
 
-// WiFi credentials go here
-// ...
-// ...
-// ...
-
+char ssid[] = "HelloWorld";
+char pass[] = "testtest";
+BLYNK_WRITE(V2)
+{
+  int pinValue = param.asInt(); // assigning incoming value from pin V0 to a variable
+  Serial.print("Received value from Blynk: ");
+  Serial.println(pinValue);
+  digitalWrite(LED,pinValue);
+  // Delay is only there so that we get a chance to see the LED value properly.
+  delay(1000);
+}
 void setup() {
   // Setup pins
   pinMode(LED, OUTPUT);
@@ -24,10 +40,9 @@ void setup() {
   Serial.begin(9600);
   delay(100);
 
-  // begin the Blynk session
-  // ...
-  // ...
-  // ...
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  Blynk.run();
+  Blynk.syncVirtual(V2);
 
   // Start listening to the DHT11
   dht.begin();
@@ -58,16 +73,19 @@ void setup() {
     relative_humidity_measure = event.relative_humidity;
   }
 
-  // Send data to Blynk
-  // ...
-  // ...
-  // ...
+// Transmet les données à Blynk
+  Blynk.virtualWrite(V0, temp_measure);
+  Blynk.virtualWrite(V1, relative_humidity_measure);
+
+
+
+
 
   Serial.println("Going to sleep for 5 seconds...");
   delay(100);
-  ESP.deepSleep(5e6);
+  //ESP.deepSleep(5e6);
 }
 
 void loop() {
-  // Not needed anymore, the function is kept so PlatformIO does not complain.
+  Blynk.run();
 }
